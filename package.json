@@ -2,7 +2,7 @@
     "name": "Design-Rant-Server",
     "version": "0.1.0",
     "description": "Server layer between DR Database and Frontend",
-    "main": "main.js",
+    "main": "server.js",
     "dependencies": {
         "neo4j-driver": "*"
     },
