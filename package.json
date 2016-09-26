@@ -4,7 +4,9 @@
     "description": "Server layer between DR Database and Frontend",
     "main": "server.js",
     "dependencies": {
-        "neo4j-driver": "*"
+        "neo4j-driver": "*",
+        "express": "~4.0.0",
+        "body-parser": "~1.0.1"
     },
     "author": "Paras DPain",
     "license": "MIT"
