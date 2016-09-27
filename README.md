@@ -28,6 +28,7 @@ Create the nodes first and then add the relationship separately
 
 ### UPVOTED
 ### DOWNVOTED
+### COMMENTED
 
 ## Server Structure
 API Listener - Query Controller - DB Connector
