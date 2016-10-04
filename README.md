@@ -1,6 +1,9 @@
 # Design Rant Server
 ## TODO
  - Document the API
+ - Add API methods for calculating scores
+ - Perform NULL checks for all API METHODS
+ - Implement OAuth via middleware
 
 ## DB Structure
 ### User
@@ -24,7 +27,7 @@ Create the nodes first and then add the relationship separately
 - on: datetime
 
 ### HAS_COMMENT
-- added_on: datetime
+- on: datetime
 
 ### UPVOTED
 ### DOWNVOTED

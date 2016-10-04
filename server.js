@@ -64,7 +64,7 @@ router.route('/user/:username')
     .get(function(req, res) {
         db.GetUser(req.params.username, function(result) {
             // Check if rant not found
-            if(result.length > 0) {
+            if(result && result.length > 0) {
                  // result.get(key) filters out the required object
                 res.json(result[0].get("user"));
             } else{
