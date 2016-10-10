@@ -12,7 +12,7 @@
 // REQUIRES
 const express = require("express");
 const bodyParser = require("body-parser");
-const db = require('./dbconnector.js');
+const db = require('./api.js');
 
 // GLOBALS
 var app = express();

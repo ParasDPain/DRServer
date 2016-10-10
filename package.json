@@ -6,7 +6,11 @@
     "dependencies": {
         "neo4j-driver": "*",
         "express": "~4.0.0",
-        "body-parser": "~1.0.1"
+        "body-parser": "~1.0.1",
+        "async": "*"
+    },
+    "scripts" : {
+        "start" : "node server.js"
     },
     "author": "Paras DPain",
     "license": "MIT"
