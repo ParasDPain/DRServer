@@ -1,17 +1,27 @@
 {
-    "name": "Design-Rant-Server",
-    "version": "0.1.0",
-    "description": "Server layer between DR Database and Frontend",
-    "main": "server.js",
-    "dependencies": {
-        "neo4j-driver": "*",
-        "express": "~4.0.0",
-        "body-parser": "~1.0.1",
-        "async": "*"
-    },
-    "scripts" : {
-        "start" : "node server.js"
-    },
-    "author": "Paras DPain",
-    "license": "MIT"
+  "name": "Design-Rant-Server",
+  "version": "0.1.1",
+  "description": "Server layer between DR Database and Frontend",
+  "main": "server.js",
+  "dependencies": {
+    "async": "*",
+    "body-parser": "~1.0.1",
+    "express": "~4.0.0",
+    "neo4j-driver": "*",
+    "object-checker": "^0.3.24",
+    "validator": "^6.0.0"
+  },
+  "scripts": {
+    "test": "mocha test",
+    "start": "node server.js"
+  },
+  "author": "Paras DPain",
+  "license": "MIT",
+  "devDependencies": {
+    "mocha": "^3.1.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/concierge/Concierge.git"
+  }
 }

@@ -17,40 +17,48 @@ const queryDB = require('./dbconnector.js').query;
 
 // HELPER METHODS
 // Method checks relationships between two nodes and performs operations selectively
-var performVotes = function(primaryNode, secondaryNode, pValue, sValue, upvote, downvote, novote, callback) {
+var performVotes = function(primaryNode, secondaryNode, pValue, sValue, novote, callback) {
     var relationshipType;
     // fetch existing relationship between the nodes
     async.series([
-        queryDB(
-            "MATCH (primary : " + primaryNode[0] + " {" + primaryNode[1] + " : {pKey} })" +
-            "-[relationship]->" +
-            "MATCH (secondary : " + secondaryNode[0] + " {" + secondaryNode[1] + " : {sKey} })" +
-            "RETURN type(relationship)", {
-                pKey: pValue,
-                sKey: sValue
-            },
-            function(result) {
-                relationshipType = result.get("relationship");
-            },
-            function(err) {
-                callback(err);
-                return; // stop further processing
-            }
-        ),
+        function fn(cb) {
+            queryDB(
+                "MATCH (primary : " + primaryNode[0] + " {" + primaryNode[1] + " : {pKey} })" +
+                "-[relationship]->" +
+                "(secondary : " + secondaryNode[0] + " {" + secondaryNode[1] + " : {sKey} }) " +
+                "RETURN type(relationship) AS relationship",
+                {
+                    pKey: pValue,
+                    sKey: sValue
+                },
+                function(result) {
+                    if(result.length > 0) {
+                        relationshipType = result[0].get("relationship") + "";
+                    } else {
+                        relationshipType = "";
+                    }
+                    cb(null, "");
+                },
+                function(err) {
+                    callback(err);
+                    return; // stop further processing
+                }
+            );
+        },
         // Redundant wrap required for async
         function switchByResult() {
             switch (relationshipType) {
                 case "COMMENTED": // Operation not allowed
-                    callback("Cannot vote your own comments")
+                    callback("Cannot vote your own comments");
                     break;
                 case "RANTED": // Operation not allowed
-                    callback("Cannot vote your own rants")
+                    callback("Cannot vote your own rants");
                     break;
                 case "UPVOTED": // already upvoted
-                    callback("Node is already upvoted")
+                    callback("Node is already upvoted");
                     break;
                 case "DOWNVOTED": // already downvoted
-                    callback("Node is already downvoted")
+                    callback("Node is already downvoted");
                     break;
                 case "": // No relationship found
                     if (novote) {
@@ -58,7 +66,8 @@ var performVotes = function(primaryNode, secondaryNode, pValue, sValue, upvote, 
                     };
                     break;
                 default: // Unknown relationship found
-                    callback("Unknown relationship status found")
+                    callback("Unknown relationship status found");
+                    cb(null, "");
             };
         }
     ]);
@@ -87,6 +96,7 @@ exports.GetUser = function(username, result, callback) {
     var score;
 
     // Find scores ((upvoted rants - downvoted rants) + (upvoted comments - downvoted comments))
+    // TODO simplify into a single CYPHER query
     async.series([
         // Upvoted rants
         function fn(cb) {
@@ -99,9 +109,9 @@ exports.GetUser = function(username, result, callback) {
                 },
                 function(countRes) {
                     score = countRes[0].get("count").toNumber();
+                    cb(null, "");
                 },
                 callback);
-            cb(null, "");
         },
 
         // Downvoted rants
@@ -115,9 +125,9 @@ exports.GetUser = function(username, result, callback) {
                 },
                 function(countRes) {
                     score -= countRes[0].get("count").toNumber();
+                    cb(null, "");
                 },
                 callback);
-            cb(null, "");
         },
 
         // Upvoted comments
@@ -131,9 +141,9 @@ exports.GetUser = function(username, result, callback) {
                 },
                 function(countRes) {
                     score += countRes[0].get("count").toNumber();
+                    cb(null, "");
                 },
                 callback);
-            cb(null, "");
         },
 
         // Downvoted comments
@@ -147,9 +157,9 @@ exports.GetUser = function(username, result, callback) {
                 },
                 function(countRes) {
                     score -= countRes[0].get("count").toNumber();
+                    cb(null, "");
                 },
                 callback);
-            cb(null, "");
         },
 
         // Get User and add calculated scoee
@@ -158,13 +168,13 @@ exports.GetUser = function(username, result, callback) {
                     uname: username
                 },
                 function(finalRes) {
-                    if(finalRes.length > 0) { // NULL CHECK
+                    if (finalRes.length > 0) { // NULL CHECK
                         finalRes[0].get("user").properties["score"] = score;
                     }
                     result(finalRes); // return
+                    cb(null, "");
                 },
                 callback);
-            cb(null, "");
         }
     ]);
 };
@@ -189,15 +199,14 @@ exports.GetRants = function(resultLimit, result, callback) {
         },
         // After receiving the collection of rants, query again foreach
         function(res) {
-            if(res) { // NULL CHECK
+            if (res) { // NULL CHECK
                 for (var i = 0; i < res.length; i++) {
                     var score;
                     queryDB(
                         "OPTIONAL MATCH (user : User)-[:UPVOTED]->(:Rant {id : {rid} }) " +
                         "WITH COUNT(user) AS upvotes " +
                         "OPTIONAL MATCH (user : User)-[:DOWNVOTED]-(:Rant {id : {rid} }) " +
-                        "RETURN upvotes - COUNT(downvotes) AS count",
-                        {
+                        "RETURN upvotes - COUNT(downvotes) AS count", {
                             rid: res[i].get("rants").properties.id
                         },
                         function(countRes) {
@@ -222,30 +231,29 @@ exports.GetRant = function(rantId, result, callback) {
                 "OPTIONAL MATCH (user : User)-[:UPVOTED]->(:Rant {id : {rid} }) " +
                 "WITH COUNT(user) AS upvotes " +
                 "OPTIONAL MATCH (user : User)-[:DOWNVOTED]-(:Rant {id : {rid} }) " +
-                "RETURN upvotes - COUNT(user) AS count",
-                {
+                "RETURN upvotes - COUNT(user) AS count", {
                     rid: rantId
                 },
                 function(countRes) {
                     score = countRes[0].get("count").toNumber();
+                    cb(null, "");
                 },
                 callback);
-            cb(null, "");
         },
 
         // Get Rant details
         function fn(cb) {
             queryDB("MATCH (rant : Rant {id : {rid} }) RETURN rant", {
-                rid: rantId
-            },
-            function(finalRes) {
-                if(finalRes.length > 0) { // NULL CHECK
-                    finalRes[0].get("rant").properties["score"] = score;
-                }
-                result(finalRes); // return
-            },
-            callback);
-        cb(null, "");
+                    rid: rantId
+                },
+                function(finalRes) {
+                    if (finalRes.length > 0) { // NULL CHECK
+                        finalRes[0].get("rant").properties["score"] = score;
+                    }
+                    result(finalRes); // return
+                    cb(null, "");
+                },
+                callback);
         }
     ]);
 };
@@ -313,13 +321,14 @@ exports.CreateComment = function(username, rantId, commentText, result, callback
 /*
  * Voting API functions lineraly and leaves UX features of toggling votes to the frontend
  */
+ // TODO Implement checks for non matches to protect against wrong input
 exports.UpvoteRant = function(username, rantId, result, callback) {
     performVotes(["User", "username"], ["Rant", "id"], username, rantId,
         function() {
             queryDB(
                 "MATCH (user : User {username: {uname} }) " +
-                "MATCH (rant : Rant {id : {rid} })" +
-                "CREATE (user)-[:UPVOTED]->(rant)", {
+                "MATCH (rant : Rant {id : {rid} }) " +
+                "CREATE (user)-[:UPVOTED]->(rant) ", {
                     uname: username,
                     rid: rantId
                 },
@@ -327,7 +336,8 @@ exports.UpvoteRant = function(username, rantId, result, callback) {
                     result("Rant upvoted successfully!")
                 },
                 callback);
-        });
+        },
+        callback);
 };
 
 exports.DownvoteRant = function(username, rantId, result, callback) {
@@ -336,7 +346,7 @@ exports.DownvoteRant = function(username, rantId, result, callback) {
             queryDB(
                 "MATCH (user : User {username : {uname} })" +
                 "-[relationship : DOWNVOTED]->" +
-                "MATCH (rant : Rant {id : {rid} })" +
+                "MATCH (rant : Rant {id : {rid} }) " +
                 "DELETE relationship", {
                     uname: username,
                     rid: rantId
@@ -345,7 +355,8 @@ exports.DownvoteRant = function(username, rantId, result, callback) {
                     result("Rant downvoted successfully!")
                 },
                 callback);
-        });
+        },
+        callback);
 };
 
 exports.UpvoteComment = function(username, commentId, result, callback) {
@@ -353,7 +364,7 @@ exports.UpvoteComment = function(username, commentId, result, callback) {
         function() {
             queryDB(
                 "MATCH (user : User {username: {uname} }) " +
-                "MATCH (com : Comment {id : {cid} })" +
+                "MATCH (com : Comment {id : {cid} }) " +
                 "CREATE (user)-[:UPVOTED]->(com)", {
                     uname: username,
                     cid: commentId
@@ -362,7 +373,8 @@ exports.UpvoteComment = function(username, commentId, result, callback) {
                     result("Comment upvoted successfully!")
                 },
                 callback);
-        });
+        },
+        callback);
 };
 
 exports.DownvoteComment = function(username, commentId, result, callback) {
@@ -380,5 +392,6 @@ exports.DownvoteComment = function(username, commentId, result, callback) {
                     result("Comment downvoted successfully!")
                 },
                 callback);
-        });
+        },
+        callback);
 };
