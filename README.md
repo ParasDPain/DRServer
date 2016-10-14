@@ -1,8 +1,7 @@
 # Design Rant Server
 ## TODO
  - Document the API
- - Add API methods for calculating scores
- - Perform NULL checks for all API METHODS
+ - Request checker behaves abnormally towards malformed requests
  - Implement OAuth via middleware
 
 ## DB Structure

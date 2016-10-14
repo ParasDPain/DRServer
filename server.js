@@ -50,9 +50,15 @@ router.route('/user')
 .post(bodyChecker(checkerOptions.userOptions), function(req, res) {
     // TODO hash passwords
     db.CreateUser(req.body.username, req.body.email, req.body.pass, function(result) {
-        res.json({
-            response: "User successfully created!"
-        });
+        if(result === true) { // API returns true if MERGE failed
+            res.json({
+                response: "User already exists"
+            });
+        } else {
+            res.json({
+                response: "User successfully created!"
+            });
+        }
     }, function(err) {
         res.send(err);
     });
@@ -102,12 +108,19 @@ router.route('/feed/:limit')
     }
 
     db.GetRants(effectiveLimit, function(result) {
-        // filter and fill array with results
-        var array = [];
-        result.forEach(function(record) {
-            array.push(record.get("rants").properties);
-        });
-        res.json(array);
+        // NULL rant check
+        if(result.length > 0) {
+            // filter and fill array with results
+            var array = [];
+            result.forEach(function(record) {
+                array.push(record.get("rants").properties);
+            });
+            res.json(array);
+        }
+        else {
+            res.json({"response" : "No Rants found"});
+        }
+
     }, function(err) {
         res.send(err);
     });

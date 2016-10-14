@@ -79,12 +79,12 @@ var rantCount = 0;
 queryDB("MATCH (r : Rant) RETURN count(*) AS count", {}, function(result) {
     rantCount = result[0].get("count").toString();
 }, function(err) {
-    console.log(err);
+    console.error(err.message);
 });
 // async.series helper method
 var cb = function(err, result) {
     if (err) {
-        console.log(err);
+        console.error(err.message);
     } else {
         console.log(result);
     }
@@ -180,7 +180,6 @@ exports.GetUser = function(username, result, callback) {
 };
 
 exports.CreateUser = function(username, email, passHash, result, callback) {
-    // TODO check if an existing user exists
     queryDB(
         "MERGE (user : User {username : {uname}, email : {uemail}, hash : {uhash} }) " +
         "ON MERGE RETURN TRUE", // return true if user already exists
@@ -194,32 +193,51 @@ exports.CreateUser = function(username, email, passHash, result, callback) {
 };
 
 exports.GetRants = function(resultLimit, result, callback) {
-    queryDB("MATCH (rants : Rant) RETURN rants LIMIT {limit}", {
-            limit: resultLimit
+    var rantArray;
+    async.series([
+        function fn(cb) {
+            queryDB("MATCH (rants : Rant) RETURN rants LIMIT {limit}", {
+                limit: resultLimit
+            },
+            function(res) {
+                rantArray = res;
+                cb(null, "");
+            },
+            callback);
         },
-        // After receiving the collection of rants, query again foreach
-        function(res) {
-            if (res) { // NULL CHECK
-                for (var i = 0; i < res.length; i++) {
-                    var score;
-                    queryDB(
-                        "OPTIONAL MATCH (user : User)-[:UPVOTED]->(:Rant {id : {rid} }) " +
-                        "WITH COUNT(user) AS upvotes " +
-                        "OPTIONAL MATCH (user : User)-[:DOWNVOTED]-(:Rant {id : {rid} }) " +
-                        "RETURN upvotes - COUNT(downvotes) AS count", {
-                            rid: res[i].get("rants").properties.id
-                        },
-                        function(countRes) {
-                            score = countRes[0].get("count").toNumber();
-                            console.log(score);
-                        },
-                        callback);
-                    res[i].get("rants").properties["score"] = score;
+
+        // Foreach rant, add it's score
+        // TODO multiple calls should be fixed by refactoring the database design
+        function fn(cb) {
+            var callCount = 0; // HACK to enforce all function calls to return
+            async.eachOf(rantArray, function(element, index , cbb) {
+                queryDB(
+                    "OPTIONAL MATCH (user : User)-[:UPVOTED]->(:Rant {id : {rid} }) " +
+                    "WITH COUNT(user) AS upvotes " +
+                    "OPTIONAL MATCH (user : User)-[:DOWNVOTED]-(:Rant {id : {rid} }) " +
+                    "RETURN upvotes - COUNT(user) AS count", {
+                        rid: element.get("rants").properties.id
+                    },
+                    function(res) {
+                        element.get("rants").properties["score"] = res[0].get("count").toNumber();
+                        console.log(res[0].get("count").toNumber());
+
+                        callCount++;
+                        // HACK callback
+                        if(callCount === rantArray.length) {
+                            console.log("we here with array as");
+                            result(rantArray);
+                            cb(null, "");
+                        }
+                    },
+                    callback);
+            }, function (err) {
+                if(err) {
+                    console.error(err.message);
                 }
-            }
-            result(res); // return
-        },
-        callback);
+            });
+        }
+    ]);
 };
 
 exports.GetRant = function(rantId, result, callback) {
@@ -314,7 +332,7 @@ exports.CreateComment = function(username, rantId, commentText, result, callback
 
         },
         function(err) {
-            console.log(err);
+            console.error(err.message);
         });
 };
 
