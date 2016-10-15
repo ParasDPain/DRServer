@@ -32,11 +32,24 @@ describe('Connection', function() {
                     function(res) {
                         assert.equal([], res);
                     },
-                    done
+                    null
                 );
             });
 
-            it('should return a valid user when valid username is given');
+            it('should return a valid user when valid username is given', function() {
+                api.GetUser(
+                    'foo',
+                    function(res) {
+                        assert.ok(res.length > 0);
+                        var user = res[0].get("user").properties;
+                        assert.ok(user.hasOwnProperty('username'));
+                        assert.ok(user.hasOwnProperty('email'));
+                        assert.ok(user.hasOwnProperty('pass'));
+                        assert.ok(user.hasOwnProperty('score'));
+                    },
+                    null
+                );
+            });
 
             it('should return an error message when no username is given');
 
