@@ -20,7 +20,7 @@ const checkerOptions = require('./checkerOptions.js')
 // GLOBALS
 var app = express();
 var router = express.Router();
-var port = process.env.PORT || 8080;
+var port = process.env.PORT || 80;
 
 // CONFIG
 app.use(bodyParser.urlencoded({
