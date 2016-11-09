@@ -1,3 +1,14 @@
+/** Validation options for object-checker to validate incoming requests
+ *
+ * Written By:
+ *         Paras DPain
+ *
+ * License:
+ *        MIT License. All code unless otherwise specified is
+ *        Copyright (c) Paras DPain 2016.
+ */
+"use strict";
+
 // REQUIRES
 const validator = require('validator');
 

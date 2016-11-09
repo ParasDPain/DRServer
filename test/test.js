@@ -32,7 +32,7 @@ describe('Connection', function() {
                     function(res) {
                         assert.equal([], res);
                     },
-                    null
+                    done
                 );
             });
 
@@ -47,7 +47,7 @@ describe('Connection', function() {
                         assert.ok(user.hasOwnProperty('pass'));
                         assert.ok(user.hasOwnProperty('score'));
                     },
-                    null
+                    done
                 );
             });
 
