@@ -222,7 +222,7 @@ exports.GetRants = function(resultLimit, result, callback) {
                     },
                     function(res) {
                         element.get("rants").properties["score"] = res[0].get("count").toNumber();
-                        element.get("rants").properties["author"] = res[0].get("author").toNumber();
+                        element.get("rants").properties["author"] = res[0].get("author");
                         console.log(res[0].get("count").toNumber());
                         console.log(res[0].get("author"));
 
