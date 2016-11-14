@@ -215,8 +215,8 @@ exports.GetRants = function(resultLimit, result, callback) {
                     "OPTIONAL MATCH (user : User)-[:UPVOTED]->(:Rant {id : {rid} }) " +
                     "WITH COUNT(user) AS upvotes " +
                     "OPTIONAL MATCH (user : User)-[:DOWNVOTED]-(:Rant {id : {rid} }) " +
-                    "WITH COUNT(user) AS downvotes" +
-                    "OPTIONAL MATCH (user : User)-[:RANTED]->(:Rant {id : {rid} })"
+                    "WITH COUNT(user) AS downvotes " +
+                    "OPTIONAL MATCH (user : User)-[:RANTED]->(:Rant {id : {rid} }) " +
                     "RETURN user AS author, upvotes - downvotes AS count", {
                         rid: element.get("rants").properties.id
                     },
