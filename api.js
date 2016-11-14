@@ -215,12 +215,16 @@ exports.GetRants = function(resultLimit, result, callback) {
                     "OPTIONAL MATCH (user : User)-[:UPVOTED]->(:Rant {id : {rid} }) " +
                     "WITH COUNT(user) AS upvotes " +
                     "OPTIONAL MATCH (user : User)-[:DOWNVOTED]-(:Rant {id : {rid} }) " +
-                    "RETURN upvotes - COUNT(user) AS count", {
+                    "WITH COUNT(user) AS downvotes" +
+                    "OPTIONAL MATCH (user : User)-[:RANTED]->(:Rant {id : {rid} })"
+                    "RETURN user AS author, upvotes - downvotes AS count", {
                         rid: element.get("rants").properties.id
                     },
                     function(res) {
                         element.get("rants").properties["score"] = res[0].get("count").toNumber();
+                        element.get("rants").properties["author"] = res[0].get("author").toNumber();
                         console.log(res[0].get("count").toNumber());
+                        console.log(res[0].get("author"));
 
                         callCount++;
                         // HACK callback
@@ -261,12 +265,13 @@ exports.GetRant = function(rantId, result, callback) {
 
         // Get Rant details
         function fn(cb) {
-            queryDB("MATCH (rant : Rant {id : {rid} }) RETURN rant", {
+            queryDB("MATCH (user: User)-[:RANTED]->(rant : Rant {id : {rid} }) RETURN user, rant", {
                     rid: rantId
                 },
                 function(finalRes) {
                     if (finalRes.length > 0) { // NULL CHECK
                         finalRes[0].get("rant").properties["score"] = score;
+                        finalRes[0].get("rant").properties["author"] = author;
                     }
                     result(finalRes); // return
                     cb(null, "");
