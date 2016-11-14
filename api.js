@@ -222,7 +222,7 @@ exports.GetRants = function(resultLimit, result, callback) {
                     },
                     function(res) {
                         element.get("rants").properties["score"] = res[0].get("count").toNumber();
-                        element.get("rants").properties["author"] = res[0].get("author");
+                        element.get("rants").properties["author"] = res[0].get("author").properties["username"];
                         console.log(res[0].get("count").toNumber());
                         console.log(res[0].get("author"));
 
@@ -271,7 +271,7 @@ exports.GetRant = function(rantId, result, callback) {
                 function(finalRes) {
                     if (finalRes.length > 0) { // NULL CHECK
                         finalRes[0].get("rant").properties["score"] = score;
-                        finalRes[0].get("rant").properties["author"] = author;
+                        finalRes[0].get("rant").properties["author"] = finalRes[0].get("author").properties["username"];
                     }
                     result(finalRes); // return
                     cb(null, "");
