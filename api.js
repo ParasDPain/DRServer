@@ -271,7 +271,7 @@ exports.GetRant = function(rantId, result, callback) {
                 function(finalRes) {
                     if (finalRes.length > 0) { // NULL CHECK
                         finalRes[0].get("rant").properties["score"] = score;
-                        finalRes[0].get("rant").properties["author"] = finalRes[0].get("author").properties["username"];
+                        finalRes[0].get("rant").properties["author"] = finalRes[0].get("user").properties["username"];
                     }
                     result(finalRes); // return
                     cb(null, "");
